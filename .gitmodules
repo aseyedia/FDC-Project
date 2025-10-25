@@ -1,0 +1,6 @@
+[submodule "cs416-narrative-viz"]
+	path = cs416-narrative-viz
+	url = https://github.com/aseyedia/cs416-narrative-viz.git
+[submodule "philly-crash-stats"]
+	path = philly-crash-stats
+	url = https://github.com/aseyedia/philly-crash-stats.git
