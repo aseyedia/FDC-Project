@@ -3,7 +3,35 @@ PENNDOT CRASH DATA SCHEMA ANALYSIS SUMMARY
 ================================================================================
 
 Total Categories Analyzed: 8
-Total Files Profiled: 8
+Total Files Profiled: 160
 
 SCHEMA ISSUES FOUND:
 --------------------------------------------------------------------------------
+
+Category: CRASH
+Issue Type: dtype_changes
+Affected Columns: ARRIVAL_TM, DISPATCH_TM, INTERSECTION_RELATED, POLICE_AGCY, SECONDARY_CRASH, WEATHER1, WZ_CLOSE_DETOUR, WZ_FLAGGER, WZ_LN_CLOSURE, WZ_MOVING, WZ_OTHER, WZ_SHLDER_MDN, WZ_WORKERS_INJ_KILLED
+
+Category: COMMVEH
+Issue Type: dtype_changes
+Affected Columns: AXLE_CNT, CARGO_BD_TYPE, CARRIER_ADDR_ZIP, CARRIER_TEL, GVWR, ICC_NUM, SPECIAL_SIZING1, TYPE_OF_CARRIER, USDOT_NUM, VEH_CONFIG_CD
+
+Category: CYCLE
+Issue Type: dtype_changes
+Affected Columns: MC_ENGINE_SIZE
+
+Category: PERSON
+Issue Type: dtype_changes
+Affected Columns: AIRBAG1, EJECTION_IND, EJECT_PATH_CD, EXTRIC_IND
+
+Category: ROADWAY
+Issue Type: dtype_changes
+Affected Columns: LANE_COUNT, ROUTE
+
+Category: TRAILVEH
+Issue Type: dtype_changes
+Affected Columns: TRAILER_PARTIAL_VIN, TRL_VEH_TYPE_CD
+
+Category: VEHICLE
+Issue Type: dtype_changes
+Affected Columns: IMPACT_POINT, VEH_MOVEMENT, VEH_POSITION, VEH_ROLE_CD

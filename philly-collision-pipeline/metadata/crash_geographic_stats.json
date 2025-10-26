@@ -1,8 +1,8 @@
 {
-  "total_records": 8619,
-  "records_with_coords": 8567,
-  "invalid_coords": 52,
-  "outside_bounds": 0,
-  "county_mismatches": 8619,
-  "final_records": 8619
+  "total_records": 214621,
+  "records_with_coords": 207673,
+  "invalid_coords": 6948,
+  "outside_bounds": 20,
+  "county_mismatches": 214621,
+  "final_records": 214601
 }
