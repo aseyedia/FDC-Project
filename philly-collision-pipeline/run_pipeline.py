@@ -12,10 +12,10 @@ Usage:
 
 Stages:
     1. Acquire - Download PennDOT and NOAA data
-    2. Profile - Analyze schema changes
-    3. Process - Quality checks and harmonization
+    2. Profile - Analyze schema changes across years
+    3. Harmonize - Standardize schemas and combine years
     4. Integrate - Geographic filtering and weather merge
-    5. Analyze - Create final datasets
+    5. Analyze - Create final analysis-ready datasets
 
 Author: Arta Seyedian
 Date: October 2025
@@ -158,10 +158,10 @@ class PipelineRunner:
             }
             return False
     
-    def run_stage_3_process(self) -> bool:
+    def run_stage_3_harmonize(self) -> bool:
         """
-        Stage 3: Data Processing
-        Schema harmonization across years.
+        Stage 3: Schema Harmonization
+        Standardize schemas and combine all years.
         """
         logger.info("\n" + "=" * 80)
         logger.info("STAGE 3: SCHEMA HARMONIZATION")
@@ -304,7 +304,7 @@ class PipelineRunner:
         stage_functions = {
             1: self.run_stage_1_acquire,
             2: self.run_stage_2_profile,
-            3: self.run_stage_3_process,
+            3: self.run_stage_3_harmonize,
             4: self.run_stage_4_integrate,
             5: self.run_stage_5_analyze
         }
