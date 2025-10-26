@@ -1,0 +1,27 @@
+version: '3.8'
+
+# Simplified Docker Compose - Just the Pipeline (No Airflow)
+# Use this if you want to run the pipeline without the full Airflow orchestration
+
+services:
+  pipeline:
+    build: .
+    container_name: philly-collision-pipeline
+    environment:
+      - NOAA_API_TOKEN=${NOAA_API_TOKEN}
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./data:/app/data
+      - ./metadata:/app/metadata
+      - ./logs:/app/logs
+      - ./scripts:/app/scripts
+      - ./utils:/app/utils
+      - ./run_pipeline.py:/app/run_pipeline.py
+    command: python run_pipeline.py --test
+
+# Usage:
+# docker-compose -f docker-compose.simple.yml build
+# docker-compose -f docker-compose.simple.yml up
+#
+# For production mode (all years):
+# docker-compose -f docker-compose.simple.yml run pipeline python run_pipeline.py
