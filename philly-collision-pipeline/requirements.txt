@@ -1,0 +1,51 @@
+# Core Data Processing
+pandas==2.1.4
+numpy==1.26.2
+pyarrow==14.0.1
+
+# Geographic Operations
+geopandas==0.14.1
+shapely==2.0.2
+fiona==1.9.5
+
+# Data Quality & Validation
+great-expectations==0.18.8
+pandera==0.17.2
+
+# API & Web Requests
+requests==2.31.0
+urllib3==2.1.0
+
+# NOAA Data Access
+noaa-sdk==0.1.21
+
+# Data Serialization
+pyyaml==6.0.1
+python-dateutil==2.8.2
+
+# Logging & Utilities
+loguru==0.7.2
+tqdm==4.66.1
+python-dotenv==1.0.0
+
+# Workflow Orchestration
+apache-airflow==2.7.3
+apache-airflow-providers-celery==3.3.4
+celery==5.3.4
+redis==5.0.1
+psycopg2-binary==2.9.9
+
+# Testing
+pytest==7.4.3
+pytest-cov==4.1.0
+pytest-mock==3.12.0
+
+# Documentation
+sphinx==7.2.6
+sphinx-rtd-theme==2.0.0
+
+# Jupyter (optional, for exploration)
+jupyter==1.0.0
+ipykernel==6.27.1
+matplotlib==3.8.2
+seaborn==0.13.0

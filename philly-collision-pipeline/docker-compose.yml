@@ -1,0 +1,144 @@
+version: '3.8'
+
+services:
+  # PostgreSQL database for Airflow metadata
+  postgres:
+    image: postgres:14
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    volumes:
+      - postgres-db-volume:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "airflow"]
+      interval: 5s
+      retries: 5
+    restart: always
+
+  # Redis - message broker for Celery executor (optional, but good for scaling)
+  redis:
+    image: redis:latest
+    expose:
+      - 6379
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 30s
+      retries: 50
+    restart: always
+
+  # Airflow webserver
+  airflow-webserver:
+    build: .
+    command: airflow webserver
+    ports:
+      - 8080:8080
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      AIRFLOW__CORE__EXECUTOR: CeleryExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+      AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://airflow:airflow@postgres/airflow
+      AIRFLOW__CELERY__BROKER_URL: redis://:@redis:6379/0
+      AIRFLOW__CORE__FERNET_KEY: ''
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+      AIRFLOW__API__AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session'
+      NOAA_API_TOKEN: ${NOAA_API_TOKEN}
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./logs:/opt/airflow/logs
+      - ./data:/app/data
+      - ./metadata:/app/metadata
+      - ./scripts:/app/scripts
+      - ./utils:/app/utils
+      - ./run_pipeline.py:/app/run_pipeline.py
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Airflow scheduler
+  airflow-scheduler:
+    build: .
+    command: airflow scheduler
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      AIRFLOW__CORE__EXECUTOR: CeleryExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+      AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://airflow:airflow@postgres/airflow
+      AIRFLOW__CELERY__BROKER_URL: redis://:@redis:6379/0
+      AIRFLOW__CORE__FERNET_KEY: ''
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+      NOAA_API_TOKEN: ${NOAA_API_TOKEN}
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./logs:/opt/airflow/logs
+      - ./data:/app/data
+      - ./metadata:/app/metadata
+      - ./scripts:/app/scripts
+      - ./utils:/app/utils
+      - ./run_pipeline.py:/app/run_pipeline.py
+    restart: always
+
+  # Airflow worker (Celery)
+  airflow-worker:
+    build: .
+    command: airflow celery worker
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      AIRFLOW__CORE__EXECUTOR: CeleryExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+      AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://airflow:airflow@postgres/airflow
+      AIRFLOW__CELERY__BROKER_URL: redis://:@redis:6379/0
+      AIRFLOW__CORE__FERNET_KEY: ''
+      NOAA_API_TOKEN: ${NOAA_API_TOKEN}
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./logs:/opt/airflow/logs
+      - ./data:/app/data
+      - ./metadata:/app/metadata
+      - ./scripts:/app/scripts
+      - ./utils:/app/utils
+      - ./run_pipeline.py:/app/run_pipeline.py
+    restart: always
+
+  # Airflow init - initialize database
+  airflow-init:
+    build: .
+    entrypoint: /bin/bash
+    command:
+      - -c
+      - |
+        airflow db init
+        airflow users create \
+          --username admin \
+          --password admin \
+          --firstname Admin \
+          --lastname User \
+          --role Admin \
+          --email admin@example.com
+    environment:
+      AIRFLOW__CORE__EXECUTOR: CeleryExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+      AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://airflow:airflow@postgres/airflow
+      AIRFLOW__CELERY__BROKER_URL: redis://:@redis:6379/0
+      AIRFLOW__CORE__FERNET_KEY: ''
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./logs:/opt/airflow/logs
+
+volumes:
+  postgres-db-volume:
