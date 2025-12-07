@@ -74,3 +74,4 @@ docs/_templates/
 
 # Great Expectations
 uncommitted/
+*.parquet
