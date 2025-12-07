@@ -81,14 +81,15 @@ class WeatherCrashIntegrator:
         """
         Extract and standardize crash dates.
         
-        Crash data has CRASH_YEAR, CRASH_MONTH, DAY_OF_WEEK columns.
-        Need to construct actual date for matching.
+        Uses DAY_OF_WEEK + CRASH_MONTH + CRASH_YEAR to reconstruct approximate dates.
+        For each crash, finds the first occurrence of that weekday in the crash month,
+        then uses monthly average weather for that specific day of week.
         
         Args:
             df: Crash dataframe
             
         Returns:
-            DataFrame with crash_date column
+            DataFrame with crash_date column and date_approximation_method flag
         """
         self.logger.info("Preparing crash dates")
         
@@ -101,25 +102,75 @@ class WeatherCrashIntegrator:
             self.logger.error(f"Available columns: {', '.join(df.columns[:20])}...")
             return df
         
-        # Try to construct date
-        # If we have CRASH_DAY column, use it
-        if 'CRASH_DAY' in df.columns:
+        # Try to construct date using available temporal information
+        if 'CRASH_DAY' in df.columns and df['CRASH_DAY'].notna().any():
+            # Best case: we have the actual day
+            self.logger.info("Using CRASH_DAY for precise date matching")
             df['crash_date'] = pd.to_datetime(
                 df[['CRASH_YEAR', 'CRASH_MONTH', 'CRASH_DAY']].rename(
                     columns={'CRASH_YEAR': 'year', 'CRASH_MONTH': 'month', 'CRASH_DAY': 'day'}
                 ),
                 errors='coerce'
             )
+            df['date_approximation_method'] = 'exact_day'
+            
+        elif 'DAY_OF_WEEK' in df.columns:
+            # Good case: use day of week to find representative day in month
+            self.logger.info("Reconstructing dates using DAY_OF_WEEK (finding first occurrence in month)")
+            
+            def find_weekday_in_month(row):
+                """Find first occurrence of given weekday in the crash month."""
+                try:
+                    year = int(row['CRASH_YEAR'])
+                    month = int(row['CRASH_MONTH'])
+                    dow = row['DAY_OF_WEEK']
+                    
+                    # Map PennDOT day codes to Python weekday (0=Monday, 6=Sunday)
+                    # PennDOT: 1=Sunday, 2=Monday, ..., 7=Saturday
+                    if pd.isna(dow):
+                        return None
+                    
+                    dow = int(dow)
+                    # Convert PennDOT (1=Sun) to Python (0=Mon, 6=Sun)
+                    python_weekday = (dow - 2) % 7  # 1->6, 2->0, 3->1, ..., 7->5
+                    
+                    # Start from first day of month
+                    first_day = datetime(year, month, 1)
+                    
+                    # Find first occurrence of this weekday
+                    days_ahead = (python_weekday - first_day.weekday()) % 7
+                    target_date = first_day + timedelta(days=days_ahead)
+                    
+                    return target_date
+                except (ValueError, TypeError):
+                    return None
+            
+            df['crash_date'] = df.apply(find_weekday_in_month, axis=1)
+            df['date_approximation_method'] = 'weekday_reconstructed'
+            
+            # For any that failed, fall back to mid-month
+            failed_mask = df['crash_date'].isna()
+            if failed_mask.any():
+                self.logger.warning(f"{failed_mask.sum()} crashes missing DAY_OF_WEEK, using mid-month (15th)")
+                df.loc[failed_mask, 'CRASH_DAY'] = 15
+                df.loc[failed_mask, 'crash_date'] = pd.to_datetime(
+                    df.loc[failed_mask, ['CRASH_YEAR', 'CRASH_MONTH', 'CRASH_DAY']].rename(
+                        columns={'CRASH_YEAR': 'year', 'CRASH_MONTH': 'month', 'CRASH_DAY': 'day'}
+                    ),
+                    errors='coerce'
+                )
+                df.loc[failed_mask, 'date_approximation_method'] = 'mid_month_fallback'
         else:
-            # Use first day of month as fallback
-            self.logger.warning("No CRASH_DAY column, using first day of month")
-            df['CRASH_DAY'] = 1
+            # Fallback: use mid-month as more representative than 1st
+            self.logger.warning("No DAY_OF_WEEK or CRASH_DAY, using mid-month (15th)")
+            df['CRASH_DAY'] = 15
             df['crash_date'] = pd.to_datetime(
                 df[['CRASH_YEAR', 'CRASH_MONTH', 'CRASH_DAY']].rename(
                     columns={'CRASH_YEAR': 'year', 'CRASH_MONTH': 'month', 'CRASH_DAY': 'day'}
                 ),
                 errors='coerce'
             )
+            df['date_approximation_method'] = 'mid_month_only'
         
         self.stats['total_crashes'] = len(df)
         self.stats['crashes_with_dates'] = df['crash_date'].notna().sum()
@@ -127,6 +178,11 @@ class WeatherCrashIntegrator:
         self.logger.info(f"Crash dates prepared:")
         self.logger.info(f"  Total crashes: {self.stats['total_crashes']:,}")
         self.logger.info(f"  With valid dates: {self.stats['crashes_with_dates']:,}")
+        
+        if 'date_approximation_method' in df.columns:
+            self.logger.info("Date approximation methods:")
+            for method, count in df['date_approximation_method'].value_counts().items():
+                self.logger.info(f"    {method}: {count:,} crashes")
         
         if df['crash_date'].notna().any():
             self.logger.info(f"  Date range: {df['crash_date'].min()} to {df['crash_date'].max()}")
