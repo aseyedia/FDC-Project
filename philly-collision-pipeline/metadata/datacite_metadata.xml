@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resource xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xmlns="http://datacite.org/schema/kernel-4"
+          xsi:schemaLocation="http://datacite.org/schema/kernel-4 http://schema.datacite.org/meta/kernel-4/metadata.xsd">
+  
+  <!-- Required Fields -->
+  <identifier identifierType="URL">https://github.com/aseyedia/FDC-Project</identifier>
+  
+  <creators>
+    <creator>
+      <creatorName nameType="Personal">Seyedi, Arya</creatorName>
+      <affiliation>University of Illinois at Urbana-Champaign</affiliation>
+    </creator>
+  </creators>
+  
+  <titles>
+    <title xml:lang="en">Philadelphia Traffic Crash Data Integration and Curation Pipeline (2005-2024)</title>
+    <title titleType="Subtitle">A Reproducible Data Curation Workflow for PennDOT Crash Records with NOAA Weather Integration</title>
+  </titles>
+  
+  <publisher>GitHub Repository</publisher>
+  
+  <publicationYear>2024</publicationYear>
+  
+  <resourceType resourceTypeGeneral="Dataset">Curated Traffic Safety Dataset</resourceType>
+  
+  <!-- Recommended Fields -->
+  <subjects>
+    <subject>Traffic Safety</subject>
+    <subject>Data Curation</subject>
+    <subject>Philadelphia</subject>
+    <subject>Crash Data</subject>
+    <subject>Weather Integration</subject>
+    <subject>Transportation Safety</subject>
+    <subject>PennDOT</subject>
+    <subject>NOAA</subject>
+  </subjects>
+  
+  <contributors>
+    <contributor contributorType="Supervisor">
+      <contributorName>CS 598 Foundations of Data Curation Course Staff</contributorName>
+      <affiliation>University of Illinois at Urbana-Champaign</affiliation>
+    </contributor>
+    <contributor contributorType="DataCollector">
+      <contributorName>Pennsylvania Department of Transportation (PennDOT)</contributorName>
+    </contributor>
+    <contributor contributorType="DataCollector">
+      <contributorName>National Oceanic and Atmospheric Administration (NOAA)</contributorName>
+    </contributor>
+  </contributors>
+  
+  <dates>
+    <date dateType="Created">2024-10-01</date>
+    <date dateType="Updated">2024-12-07</date>
+    <date dateType="Available">2024-12-07</date>
+  </dates>
+  
+  <language>en</language>
+  
+  <alternateIdentifiers>
+    <alternateIdentifier alternateIdentifierType="GitHub">aseyedia/FDC-Project</alternateIdentifier>
+  </alternateIdentifiers>
+  
+  <relatedIdentifiers>
+    <relatedIdentifier relatedIdentifierType="URL" relationType="IsDocumentedBy">
+      https://github.com/aseyedia/FDC-Project/blob/main/philly-collision-pipeline/README.md
+    </relatedIdentifier>
+    <relatedIdentifier relatedIdentifierType="URL" relationType="IsSourceOf">
+      https://pennshare.maps.arcgis.com/apps/webappviewer/index.html?id=8fdbf046e36e41649bbfd9d7dd7c7e7e
+    </relatedIdentifier>
+    <relatedIdentifier relatedIdentifierType="URL" relationType="IsSourceOf">
+      https://www.ncei.noaa.gov/cdo-web/
+    </relatedIdentifier>
+  </relatedIdentifiers>
+  
+  <formats>
+    <format>application/x-parquet</format>
+    <format>text/csv</format>
+    <format>application/json</format>
+  </formats>
+  
+  <version>2.0</version>
+  
+  <rightsList>
+    <rights rightsURI="https://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International (CC BY 4.0)</rights>
+  </rightsList>
+  
+  <descriptions>
+    <description descriptionType="Abstract" xml:lang="en">
+      This dataset represents a comprehensive curation and integration of Pennsylvania Department of Transportation (PennDOT) crash records for Philadelphia County spanning 2005-2024. The project implements a five-stage data curation pipeline (Acquire, Profile, Harmonize, Integrate, Analyze) that processes eight distinct crash record categories (crash, person, vehicle, flag, road, roadway condition, commercial vehicle, driver-related factors) totaling approximately 200,000 crash events.
+      
+      A key methodological innovation is the weather integration component, which uses temporal reconstruction based on DAY_OF_WEEK fields to match crash events with corresponding NOAA weather observations when exact dates are unavailable. This version 2.0 implementation improves upon initial approaches by utilizing all available temporal information rather than defaulting to fixed-day approximations, resulting in more accurate temporal distribution of crashes across days within each month.
+      
+      The pipeline outputs are stored in Parquet format for long-term preservation, with comprehensive metadata tracking including provenance information, data quality flags, and approximation methods used for each record. Geographic coordinates are validated and standardized to WGS84. The entire workflow is automated, reproducible, and designed to meet FAIR data principles (Findable, Accessible, Interoperable, Reusable).
+    </description>
+    
+    <description descriptionType="Methods" xml:lang="en">
+      Data Acquisition: PennDOT crash records downloaded via ArcGIS REST API; NOAA weather data obtained through Climate Data Online API (station USW00013739 - Philadelphia International Airport).
+      
+      Processing Pipeline:
+      1. Acquisition Stage: Raw data retrieval with API rate limiting and error handling
+      2. Profiling Stage: Schema analysis, data quality assessment, duplicate detection
+      3. Harmonization Stage: Standardization of field names, data types, coordinate systems (WGS84)
+      4. Integration Stage: Weather matching using weekday reconstruction algorithm; cross-category linkage via CRN (Crash Report Number)
+      5. Analysis Stage: Statistical summaries, validation checks, metadata generation
+      
+      Weather Matching Methodology: When exact CRASH_DAY is unavailable, the algorithm uses CRASH_YEAR, CRASH_MONTH, and DAY_OF_WEEK to identify the first occurrence of that weekday within the crash month. For example, a Wednesday crash in July 2023 is matched to July 5, 2023 weather data. Each record is tagged with a date_approximation_method metadata field for transparency (exact_day, weekday_reconstructed, or mid_month_fallback).
+      
+      Quality Assurance: Automated validation of coordinate ranges, temporal consistency checks, cross-category referential integrity verification, outlier detection for numeric fields.
+    </description>
+    
+    <description descriptionType="TechnicalInfo" xml:lang="en">
+      Software: Python 3.9+, pandas, pyarrow, requests
+      Data Format: Apache Parquet with Snappy compression
+      Coordinate System: WGS84 (EPSG:4326)
+      Temporal Coverage: January 1, 2005 - December 31, 2024
+      Spatial Coverage: Philadelphia County, Pennsylvania, USA
+      Record Count: ~200,000 crash events with associated person, vehicle, and environmental attributes
+      File Size: ~500MB (compressed Parquet format)
+      
+      Key Data Elements:
+      - Crash-level: Location (lat/lon), date/time, severity, contributing factors
+      - Person-level: Age, sex, injury severity, seating position, restraint use
+      - Vehicle-level: Make, model, year, damage extent, vehicle type
+      - Environmental: Weather conditions (temperature, precipitation, wind), road surface, lighting
+      - Temporal: Year, month, day of week, hour (when available)
+      
+      Metadata Standards: DataCite 4.0, W3C PROV for provenance tracking
+      Documentation: Comprehensive README files, methodology documents, ethics statement, pipeline guide
+    </description>
+  </descriptions>
+  
+  <geoLocations>
+    <geoLocation>
+      <geoLocationPlace>Philadelphia County, Pennsylvania, United States</geoLocationPlace>
+      <geoLocationBox>
+        <westBoundLongitude>-75.280303</westBoundLongitude>
+        <eastBoundLongitude>-74.955763</eastBoundLongitude>
+        <southBoundLatitude>39.867004</southBoundLatitude>
+        <northBoundLatitude>40.137992</northBoundLatitude>
+      </geoLocationBox>
+    </geoLocation>
+  </geoLocations>
+  
+  <fundingReferences>
+    <fundingReference>
+      <funderName>University of Illinois at Urbana-Champaign</funderName>
+      <awardTitle>CS 598 Foundations of Data Curation - Course Project</awardTitle>
+    </fundingReference>
+  </fundingReferences>
+  
+</resource>
