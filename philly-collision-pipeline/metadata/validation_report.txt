@@ -1,0 +1,91 @@
+================================================================================
+PHILADELPHIA COLLISION PIPELINE - VALIDATION REPORT
+================================================================================
+Generated: 2025-12-07 18:51:19
+Pipeline Version: 2.0
+
+📂 Loading data from: /Users/artas/githubProjects/FDC-Project/philly-collision-pipeline/data/final/full_integrated.parquet
+✅ Loaded 375,883 records with 131 fields
+
+--------------------------------------------------------------------------------
+1. TEMPORAL ACCURACY ANALYSIS (v2.0 Weather Matching)
+--------------------------------------------------------------------------------
+Total Crashes: 375,883
+
+  ✓ Exact Day Available:       0 (0.0%)
+  ✓ Weekday Reconstructed:     375,883 (100.0%)
+  ⚠ Mid-Month Fallback:        0 (0.0%)
+
+📊 v2.0 Improvement: Weekday reconstruction uses DAY_OF_WEEK field to find
+   first occurrence of that weekday in the crash month, avoiding artificial
+   clustering at day 1 that occurred in v1.0.
+
+--------------------------------------------------------------------------------
+2. TEMPORAL DISTRIBUTION
+--------------------------------------------------------------------------------
+Time Period: 2005-2024 (20 years)
+Average Crashes per Year: 18,794.2
+
+Day 1 Crashes: 61,916 (16.47%)
+  → In v1.0, this would be ~90% (artificial clustering)
+  → In v2.0, crashes spread across days 1-7 via weekday reconstruction
+
+Top 5 Days with Most Crashes:
+  Day 1: 61,916 crashes
+  Day 2: 60,446 crashes
+  Day 3: 56,452 crashes
+  Day 4: 49,515 crashes
+  Day 5: 48,621 crashes
+
+--------------------------------------------------------------------------------
+3. GEOGRAPHIC COVERAGE
+--------------------------------------------------------------------------------
+⚠️  Coordinate columns not found
+
+--------------------------------------------------------------------------------
+4. WEATHER DATA INTEGRATION
+--------------------------------------------------------------------------------
+⚠️  No weather columns found
+
+--------------------------------------------------------------------------------
+5. DATA QUALITY METRICS
+--------------------------------------------------------------------------------
+Total Records: 375,883
+Total Fields: 131
+Overall Completeness: 78.27%
+Fields with 100% Completeness: 85
+Fields Below 90% Completeness: 38
+
+--------------------------------------------------------------------------------
+6. OUTPUT FILES SUMMARY
+--------------------------------------------------------------------------------
+  cyclist_focused.parquet
+    Size: 0.92 MB | Records: 13,603 | Fields: 165
+  full_integrated.parquet
+    Size: 16.03 MB | Records: 375,883 | Fields: 131
+  pedestrian_focused.parquet
+    Size: 1.63 MB | Records: 31,258 | Fields: 142
+  person.parquet
+    Size: 4.61 MB | Records: 559,079 | Fields: 25
+  vehicle.parquet
+    Size: 11.05 MB | Records: 457,730 | Fields: 43
+
+--------------------------------------------------------------------------------
+7. FAIR PRINCIPLES COMPLIANCE
+--------------------------------------------------------------------------------
+✓ Findable:      DataCite metadata XML with unique identifiers
+✓ Accessible:    Public GitHub repository, CC-BY 4.0 license
+✓ Interoperable: Parquet format, WGS84 coordinates, standard schemas
+✓ Reusable:      Comprehensive documentation, transparent metadata flags
+
+--------------------------------------------------------------------------------
+REPORT SAVED
+--------------------------------------------------------------------------------
+📄 JSON Report: /Users/artas/githubProjects/FDC-Project/philly-collision-pipeline/metadata/validation_report_20251207_185121.json
+
+To save console output:
+  python generate_validation_report.py | tee metadata/validation_report.txt
+
+================================================================================
+✅ VALIDATION COMPLETE
+================================================================================
