@@ -1,0 +1,44 @@
+# Production Dockerfile for Philadelphia Collision Pipeline v2.0
+# This is a lightweight container without Airflow overhead
+
+FROM python:3.11-slim
+
+# Install system dependencies for geospatial operations
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libgeos-dev \
+    libproj-dev \
+    libgdal-dev \
+    gdal-bin \
+    curl \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set working directory
+WORKDIR /app
+
+# Copy requirements and install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy application code
+COPY scripts/ ./scripts/
+COPY utils/ ./utils/
+COPY run_pipeline.py .
+
+# Create data directories
+RUN mkdir -p data/raw data/processed data/final metadata logs
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH=/app
+
+# Add metadata labels for DataCite compliance
+LABEL org.opencontainers.image.title="Philadelphia Collision Pipeline"
+LABEL org.opencontainers.image.description="Data curation pipeline for PennDOT crash records with NOAA weather integration"
+LABEL org.opencontainers.image.version="2.0"
+LABEL org.opencontainers.image.authors="Arta Seyedian"
+LABEL org.opencontainers.image.source="https://github.com/aseyedia/FDC-Project"
+
+# Default command runs in test mode
+CMD ["python", "run_pipeline.py", "--test"]

@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+  # Production Pipeline Runner (v2.0 with weather matching improvements)
+  pipeline:
+    build:
+      context: .
+      dockerfile: Dockerfile.standalone
+    container_name: philly-collision-pipeline-v2
+    environment:
+      # NOAA API Token (required for weather data acquisition)
+      - NOAA_API_TOKEN=${NOAA_API_TOKEN:-your_token_here}
+      - PYTHONUNBUFFERED=1
+      - PIPELINE_VERSION=2.0
+    volumes:
+      # Mount data directories for persistence
+      - ./data:/app/data
+      - ./metadata:/app/metadata
+      - ./logs:/app/logs
+      # Mount source code for development (optional - remove in production)
+      - ./scripts:/app/scripts
+      - ./utils:/app/utils
+      - ./run_pipeline.py:/app/run_pipeline.py
+    command: python run_pipeline.py
+    restart: "no"
+
+  # Test Mode Runner (quick validation, 2023 data only)
+  pipeline-test:
+    build:
+      context: .
+      dockerfile: Dockerfile.standalone
+    container_name: philly-collision-pipeline-test
+    environment:
+      - NOAA_API_TOKEN=${NOAA_API_TOKEN:-your_token_here}
+      - PYTHONUNBUFFERED=1
+      - PIPELINE_VERSION=2.0
+    volumes:
+      - ./data:/app/data
+      - ./metadata:/app/metadata
+      - ./logs:/app/logs
+      - ./scripts:/app/scripts
+      - ./utils:/app/utils
+      - ./run_pipeline.py:/app/run_pipeline.py
+    command: python run_pipeline.py --test
+    restart: "no"
+
+# Usage Instructions:
+# 
+# 1. Set your NOAA API token:
+#    export NOAA_API_TOKEN="your_actual_token"
+#    Or create a .env file with: NOAA_API_TOKEN=your_actual_token
+#
+# 2. Build the container:
+#    docker-compose -f docker-compose.prod.yml build
+#
+# 3. Run in test mode (recommended first):
+#    docker-compose -f docker-compose.prod.yml up pipeline-test
+#
+# 4. Run full pipeline:
+#    docker-compose -f docker-compose.prod.yml up pipeline
+#
+# 5. Run specific stages:
+#    docker-compose -f docker-compose.prod.yml run pipeline python run_pipeline.py --stages integrate,analyze
+#
+# 6. View logs:
+#    docker-compose -f docker-compose.prod.yml logs -f pipeline
+#
+# 7. Clean up:
+#    docker-compose -f docker-compose.prod.yml down
+#    docker volume prune
